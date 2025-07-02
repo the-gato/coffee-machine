@@ -161,10 +161,15 @@ while not done:
     cost_str = str(cost_float)
     cost = Decimal(cost_str)
 
+    water = coffee_selection["ingredients"]["water"]
+    milk = coffee_selection["ingredients"]["milk"]
+    coffee = coffee_selection["ingredients"]["coffee"]
+
     if total > cost:
-        water = coffee_selection["water"]
-        milk = coffee_selection["milk"]
-        coffee = coffee_selection["coffee"]
         consume_resources(water, milk, coffee)
         change = calculate_change(total, cost)
         print(f"Here is ${change} in change.")
+    elif total == cost:
+        consume_resources(water, milk, coffee)
+    else:
+        print(f"Insufficient payment. Cost: ${cost:.2f}. Payment: ${total:.2f}")
