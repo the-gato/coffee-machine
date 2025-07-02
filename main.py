@@ -46,6 +46,7 @@ def print_report():
     print(f"Coffee: {resources["coffee"]}")
     print(f"Money: {money}")
 
+
 def consume_resources(water, milk, coffee):
     #deduct resources to simulate making coffee
     current_water = resources["water"]
@@ -127,3 +128,29 @@ def calculate_change(payment, cost):
         raise ValueError("Payment is not greater than cost.")
 
 
+done = False
+while not done:
+    answer = input("What would you like? (espresso/latte/cappuccino): ")
+    coffee_selection = {}
+    if answer == "espresso":
+        coffee_selection = MENU["espresso"]
+    elif answer == "latte":
+        coffee_selection = MENU["latte"]
+    elif answer == "cappuccino":
+        coffee_selection = MENU["cappuccino"]
+    else:
+        print("Invalid input. Options are 'espresso', 'latte', 'cappuccino'")
+
+    print("Please insert coins.")
+    num_quarters = int(input("How many quarters?: "))
+    num_dimes = int(input("How many dimes?: "))
+    num_nickles = int(input("How many nickles?: "))
+    num_pennies = int(input("How many pennies?: "))
+
+    total = sum_coins(num_quarters, num_dimes, num_nickles, num_pennies)
+    cost_float = coffee_selection["cost"]
+    cost_str = str(cost_float)
+    cost = Decimal(cost_str)
+
+    if total > cost:
+        change = calculate_change(total, cost)
