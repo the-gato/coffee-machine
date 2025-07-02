@@ -136,17 +136,20 @@ def calculate_change(payment, cost):
     else:
         raise ValueError("Payment is not greater than cost.")
 
-
+coffee_key = ""
 done = False
 while not done:
     answer = input("What would you like? (espresso/latte/cappuccino): ")
     coffee_selection = {}
     if answer == "espresso":
         coffee_selection = MENU["espresso"]
+        coffee_key = "espresso"
     elif answer == "latte":
         coffee_selection = MENU["latte"]
+        coffee_key = "latte"
     elif answer == "cappuccino":
         coffee_selection = MENU["cappuccino"]
+        coffee_key = "capuccino"
     else:
         print("Invalid input. Options are 'espresso', 'latte', 'cappuccino'")
 
@@ -164,12 +167,14 @@ while not done:
     water = coffee_selection["ingredients"]["water"]
     milk = coffee_selection["ingredients"]["milk"]
     coffee = coffee_selection["ingredients"]["coffee"]
-
+    key_list = list(coffee_selection)
     if total > cost:
         consume_resources(water, milk, coffee)
         change = calculate_change(total, cost)
         print(f"Here is ${change} in change.")
+        print(f"Here is your {coffee_key} ☕ Enjoy!")
     elif total == cost:
         consume_resources(water, milk, coffee)
+        print(f"Here is your {coffee_key} ☕ Enjoy!")
     else:
         print(f"Insufficient payment. Cost: ${cost:.2f}. Payment: ${total:.2f}")
