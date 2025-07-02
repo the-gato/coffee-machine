@@ -48,21 +48,30 @@ def print_report():
 
 
 def consume_resources(water, milk, coffee):
-    #deduct resources to simulate making coffee
+    """Deducts resources to simulate making coffee.
+
+    Args:
+        water_needed: Amount of water required.
+        milk_needed: Amount of milk required.
+        coffee_needed: Amount of coffee required.
+
+    Raises:
+        InsufficientResourceError: If any required resource is not available.
+    """
     current_water = resources["water"]
     current_milk = resources["milk"]
     current_coffee = resources["coffee"]
 
     if current_water - water < 0:
-        print("Unable to dispense coffee. There is not enough water")
+        raise ValueError(f"Not enough water. Required: {water}ml, Available: {current_water}ml.")
     else:
         resources["water"] = current_water - water
     if current_milk - milk < 0:
-        print("Unable to dispense coffee. There is not enough milk.")
+        raise ValueError(f"Not enough milk. Required: {milk}ml, Available: {current_milk}ml.")
     else:
         resources["milk"] = current_milk - milk
     if current_coffee - coffee < 0:
-        print("Unable to dispense coffee. There is not enough coffee beans.")
+        raise ValueError(f"Not enough coffee beans. Required: {coffee}ml, Available: {current_coffee}ml.")
     else:
         resources["coffee"] = current_coffee - coffee
 
@@ -153,4 +162,9 @@ while not done:
     cost = Decimal(cost_str)
 
     if total > cost:
+        water = coffee_selection["water"]
+        milk = coffee_selection["milk"]
+        coffee = coffee_selection["coffee"]
+        consume_resources(water, milk, coffee)
         change = calculate_change(total, cost)
+        print(f"Here is ${change} in change.")
