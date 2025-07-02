@@ -17,7 +17,7 @@ Follow these steps to get the coffee machine program up and running on your loca
     ```
 3.  **Run the program:**
     ```bash
-    python main.py # Or whatever your main script file is named (e.g., coffee_machine.py)
+    python main.py
     ```
 
 ---
