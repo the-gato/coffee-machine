@@ -34,7 +34,6 @@ resources = {
 
 money = 0 # US dollars ($)
 
-# TODO 4. Check that the money inserted >= cost of product.
 # TODO 6. off command terminates while loop
 
 
@@ -150,6 +149,8 @@ while not done:
     elif answer == "cappuccino":
         coffee_selection = MENU["cappuccino"]
         coffee_key = "capuccino"
+    elif answer == "done":
+        break
     else:
         print("Invalid input. Options are 'espresso', 'latte', 'cappuccino'")
 
