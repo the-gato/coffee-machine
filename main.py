@@ -32,18 +32,99 @@ resources = {
     "coffee": 100,
 }
 
-money = 0 # US dollars ($)
-
-# TODO 6. off command terminates while loop
+money = Decimal('0') # US dollars ($)
 
 
-def print_report():
-    # Prints coffee machine resources
+def handle_transaction(num_total, num_cost):
+    """
+
+    Args:
+        num_total: total in USD ($) from customer
+        num_cost: cost of coffee in USD($)
+
+    Returns:
+        change in USD ($)
+
+    """
+
+    if num_total > num_cost:
+
+        return  calculate_change(num_total, num_cost)
+
+    elif num_total == num_cost:
+        return Decimal('0')
+
+    else:
+        raise ValueError(f"Insufficient payment. Cost: ${cost:.2f}. Payment: ${total:.2f}")
+
+
+def determine_cost_and_consumption(coffee_choice, coffee_key=None):
+    """
+
+    Args:
+        coffee_choice: a dict containing ingredients and cost of menu selection
+        coffee_key: coffee name
+
+    Returns:
+        tuple
+            cost
+            milk
+            water
+            coffee beans
+            list
+                the key (coffee)
+
+    """
+    cost_float = coffee_choice["cost"]
+    cost_str = str(cost_float)
+    cost = Decimal(cost_str)
+
+    water = coffee_choice["ingredients"]["water"]
+    milk = 0 if coffee_key == "espresso" else coffee_choice["ingredients"]["milk"]
+    coffee = coffee_choice["ingredients"]["coffee"]
+    key_list = list(coffee_choice)
+    return (cost, water, milk, coffee, key_list)
+
+def insert_coins():
+    """asks user to insert coins.
+
+    Returns: sum of coins
+
+    """
+    print("Please insert coins.")
+    num_quarters = int(input("How many quarters?: "))
+    num_dimes = int(input("How many dimes?: "))
+    num_nickles = int(input("How many nickles?: "))
+    num_pennies = int(input("How many pennies?: "))
+
+    return sum_coins(num_quarters, num_dimes, num_nickles, num_pennies)
+
+
+def add_money(current_total, amount_to_add):
+    """
+    Adds a specified amount of money to a current total and returns the new total.
+
+    Args:
+        current_total (Decimal): The initial total amount.
+        amount_to_add (Decimal): The amount of money to add.
+
+    Returns:
+        Decimal: The new total after adding the amount.
+    """
+    new_total = current_total + amount_to_add
+    return new_total
+
+def print_report(current_money):
+    """
+    Args:
+        current_money:
+            The current amount of money in the coffee maker.
+    """
 
     print(f"Water: {resources["water"]}")
     print(f"Milk: {resources["milk"]}")
     print(f"Coffee: {resources["coffee"]}")
-    print(f"Money: {money}")
+    print(f"Money: {current_money}")
 
 
 def consume_resources(water, milk, coffee):
@@ -53,26 +134,14 @@ def consume_resources(water, milk, coffee):
         water_needed: Amount of water required.
         milk_needed: Amount of milk required.
         coffee_needed: Amount of coffee required.
-
-    Raises:
-        InsufficientResourceError: If any required resource is not available.
     """
     current_water = resources["water"]
     current_milk = resources["milk"]
     current_coffee = resources["coffee"]
 
-    if current_water - water < 0:
-        raise ValueError(f"Not enough water. Required: {water}ml, Available: {current_water}ml.")
-    else:
-        resources["water"] = current_water - water
-    if current_milk - milk < 0:
-        raise ValueError(f"Not enough milk. Required: {milk}ml, Available: {current_milk}ml.")
-    else:
-        resources["milk"] = current_milk - milk
-    if current_coffee - coffee < 0:
-        raise ValueError(f"Not enough coffee beans. Required: {coffee}ml, Available: {current_coffee}ml.")
-    else:
-        resources["coffee"] = current_coffee - coffee
+    resources["water"] = current_water - water
+    resources["milk"] = current_milk - milk
+    resources["coffee"] = current_coffee - coffee
 
 
 def sum_coins(num_quarters=None, num_dimes=None, num_nickels=None, num_pennies=None):
@@ -135,6 +204,47 @@ def calculate_change(payment, cost):
     else:
         raise ValueError("Payment is not greater than cost.")
 
+def has_resources(current_water, current_milk, current_coffee, ingredients_dict, coffee_key=None):
+    """check resources for making coffee
+
+    Args:
+        current_water:
+            current water in mls
+        current_milk:
+            current milk in mls
+        current_coffee:
+            current coffee beans in grams
+        ingredients_dict:
+            dictionary of coffee ingredients
+        coffee_key:
+            The coffee key from the menu dict
+
+        Returns:
+            true if sufficient resources are present
+    """
+    required_water = ingredients_dict["water"]
+    required_milk = 0 if coffee_key == "espresso" else ingredients_dict["milk"]
+    required_coffee = ingredients_dict["coffee"]
+
+    has_enough_water = current_water >= required_water
+    if not has_enough_water:
+        print(f"Not enough water. Available: {current_water}. Required: {required_water}")
+
+    has_enough_coffee = current_coffee >= required_coffee
+    if not has_enough_coffee:
+        print(f"Not enough coffee beans. Available: {current_coffee}. Required: {required_coffee}")
+
+    if coffee_key != "espresso":
+        has_enough_milk = current_milk >= required_milk
+        if not has_enough_milk:
+            print(f"Not enough milk. Available: {current_milk}. Required: {required_milk}")
+
+    if coffee_key != "espresso":
+        return has_enough_milk and has_enough_coffee and has_enough_water
+
+    else:
+        return has_enough_water and has_enough_coffee
+
 coffee_key = ""
 done = False
 while not done:
@@ -143,39 +253,74 @@ while not done:
     if answer == "espresso":
         coffee_selection = MENU["espresso"]
         coffee_key = "espresso"
+        if not has_resources(current_water=resources["water"], current_milk=resources["milk"],
+                             current_coffee=resources["coffee"], ingredients_dict=coffee_selection["ingredients"],
+                             coffee_key="espresso"):
+            continue
+
+        total = insert_coins()
+
+        cost_and_consumption = determine_cost_and_consumption(coffee_selection, coffee_key)
+        cost = cost_and_consumption[0]
+        water = cost_and_consumption[1]
+        milk = cost_and_consumption[2]
+        coffee = cost_and_consumption[3]
+
+        try:
+            change = handle_transaction(total, cost)
+            consume_resources(water, milk, coffee)
+            money = add_money(money, cost)
+            if change > Decimal('0'):
+                print(f"Here is ${change} in change.")
+
+            print(f"Here is your {coffee_key} ☕ Enjoy!")
+        except ValueError as e:
+            print(f"{e}")
+
     elif answer == "latte":
         coffee_selection = MENU["latte"]
         coffee_key = "latte"
+        total = insert_coins()
+        cost_and_consumption = determine_cost_and_consumption(coffee_selection)
+        cost = cost_and_consumption[0]
+        water = cost_and_consumption[1]
+        milk = cost_and_consumption[2]
+        coffee = cost_and_consumption[3]
+
+        change = handle_transaction(total, cost)
+        consume_resources(water, milk, coffee)
+        if change > Decimal('0'):
+            print(f"Here is ${change} in change.")
+            print(f"Here is your {coffee_key} ☕ Enjoy!")
+        else:
+            print(f"Here is your {coffee_key} ☕ Enjoy!")
+
     elif answer == "cappuccino":
         coffee_selection = MENU["cappuccino"]
         coffee_key = "capuccino"
+        total = insert_coins()
+        cost_and_consumption = determine_cost_and_consumption(coffee_selection)
+        cost = cost_and_consumption[0]
+        water = cost_and_consumption[1]
+        milk = cost_and_consumption[2]
+        coffee = cost_and_consumption[3]
+
+        change = handle_transaction(total, cost)
+        consume_resources(water, milk, coffee)
+        if change > Decimal('0'):
+            print(f"Here is ${change} in change.")
+            print(f"Here is your {coffee_key} ☕ Enjoy!")
+        else:
+            print(f"Here is your {coffee_key} ☕ Enjoy!")
+
     elif answer == "done":
         break
+    elif answer == "report":
+        print_report(money)
     else:
         print("Invalid input. Options are 'espresso', 'latte', 'cappuccino'")
 
-    print("Please insert coins.")
-    num_quarters = int(input("How many quarters?: "))
-    num_dimes = int(input("How many dimes?: "))
-    num_nickles = int(input("How many nickles?: "))
-    num_pennies = int(input("How many pennies?: "))
 
-    total = sum_coins(num_quarters, num_dimes, num_nickles, num_pennies)
-    cost_float = coffee_selection["cost"]
-    cost_str = str(cost_float)
-    cost = Decimal(cost_str)
 
-    water = coffee_selection["ingredients"]["water"]
-    milk = coffee_selection["ingredients"]["milk"]
-    coffee = coffee_selection["ingredients"]["coffee"]
-    key_list = list(coffee_selection)
-    if total > cost:
-        consume_resources(water, milk, coffee)
-        change = calculate_change(total, cost)
-        print(f"Here is ${change} in change.")
-        print(f"Here is your {coffee_key} ☕ Enjoy!")
-    elif total == cost:
-        consume_resources(water, milk, coffee)
-        print(f"Here is your {coffee_key} ☕ Enjoy!")
-    else:
-        print(f"Insufficient payment. Cost: ${cost:.2f}. Payment: ${total:.2f}")
+
+
