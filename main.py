@@ -299,12 +299,17 @@ while not done:
                 print(f"Here is ${change} in change.")
            
             print(f"Here is your {coffee_key} ☕ Enjoy!")
+
         except ValueError as e:
             print(f"{e}")
-            
+
     elif answer == "cappuccino":
         coffee_selection = MENU["cappuccino"]
         coffee_key = "capuccino"
+        if not has_resources(current_water=resources["water"], current_milk=resources["milk"],
+                            current_coffee=resources["coffee"], ingredients_dict=coffee_selection["ingredients"]):
+            continue
+
         total = insert_coins()
         cost_and_consumption = determine_cost_and_consumption(coffee_selection)
         cost = cost_and_consumption[0]
@@ -312,13 +317,16 @@ while not done:
         milk = cost_and_consumption[2]
         coffee = cost_and_consumption[3]
 
-        change = handle_transaction(total, cost)
-        consume_resources(water, milk, coffee)
-        if change > Decimal('0'):
-            print(f"Here is ${change} in change.")
+        try:
+            change = handle_transaction(total, cost)
+            consume_resources(water, milk, coffee)
+            if change > Decimal('0'):
+                print(f"Here is ${change} in change.")
+        
             print(f"Here is your {coffee_key} ☕ Enjoy!")
-        else:
-            print(f"Here is your {coffee_key} ☕ Enjoy!")
+
+        except ValueError as e:
+            print(f"{e}")
 
     elif answer == "done":
         break
